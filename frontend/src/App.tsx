@@ -7,6 +7,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Board from './pages/Board'
 import Jobs from './pages/Jobs'
+import Admin from './pages/Admin'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -31,6 +32,7 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="board" element={<Board />} />
             <Route path="jobs" element={<Jobs />} />
+            <Route path="admin" element={<Admin />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

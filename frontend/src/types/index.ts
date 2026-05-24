@@ -4,6 +4,16 @@ export interface User {
   id: number
   name: string
   email: string
+  role: 'user' | 'admin'
+  created_at: string
+}
+
+export interface AdminUser {
+  id: number
+  name: string
+  email: string
+  role: 'user' | 'admin'
+  job_count: number
   created_at: string
 }
 

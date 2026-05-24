@@ -1,11 +1,12 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
-import { LayoutDashboard, Kanban, List, Briefcase, LogOut } from 'lucide-react'
+import { LayoutDashboard, Kanban, List, Briefcase, LogOut, ShieldCheck } from 'lucide-react'
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/board', icon: Kanban, label: 'Kanban Board', end: false },
-  { to: '/jobs', icon: List, label: 'All Jobs', end: false },
+  { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true, adminOnly: false },
+  { to: '/board', icon: Kanban, label: 'Kanban Board', end: false, adminOnly: false },
+  { to: '/jobs', icon: List, label: 'All Jobs', end: false, adminOnly: false },
+  { to: '/admin', icon: ShieldCheck, label: 'Admin Panel', end: false, adminOnly: true },
 ]
 
 export default function Layout() {
@@ -28,7 +29,7 @@ export default function Layout() {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map(({ to, icon: Icon, label, end }) => (
+          {navItems.filter(({ adminOnly }) => !adminOnly || user?.role === 'admin').map(({ to, icon: Icon, label, end }) => (
             <NavLink
               key={to}
               to={to}

@@ -27,8 +27,12 @@ func Migrate(database *sql.DB) error {
 			name          TEXT NOT NULL,
 			email         TEXT UNIQUE NOT NULL,
 			password_hash TEXT NOT NULL,
+			role          TEXT NOT NULL DEFAULT 'user'
+				CHECK (role IN ('user', 'admin')),
 			created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 		);
+
+		ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user';
 
 		CREATE TABLE IF NOT EXISTS jobs (
 			id         SERIAL PRIMARY KEY,

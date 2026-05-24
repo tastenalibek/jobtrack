@@ -51,6 +51,14 @@ func main() {
 		r.Get("/jobs/{id}", h.GetJob)
 		r.Put("/jobs/{id}", h.UpdateJob)
 		r.Delete("/jobs/{id}", h.DeleteJob)
+
+		r.Group(func(r chi.Router) {
+			r.Use(h.AdminOnly)
+			r.Get("/admin/users", h.ListUsers)
+			r.Delete("/admin/users/{id}", h.DeleteUser)
+			r.Put("/admin/users/{id}/role", h.UpdateUserRole)
+			r.Get("/admin/jobs", h.ListAllJobs)
+		})
 	})
 
 	port := os.Getenv("PORT")

@@ -35,17 +35,17 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	var user model.User
 	err = h.db.QueryRowContext(r.Context(),
-		`INSERT INTO users (name, email, password_hash)
-		 VALUES ($1, $2, $3)
-		 RETURNING id, name, email, created_at`,
+		`INSERT INTO users (name, email, password_hash, role)
+		 VALUES ($1, $2, $3, CASE WHEN (SELECT COUNT(*) FROM users) = 0 THEN 'admin' ELSE 'user' END)
+		 RETURNING id, name, email, role, created_at`,
 		req.Name, req.Email, string(hash),
-	).Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt)
+	).Scan(&user.ID, &user.Name, &user.Email, &user.Role, &user.CreatedAt)
 	if err != nil {
 		writeError(w, http.StatusConflict, "email already in use")
 		return
 	}
 
-	token, err := auth.GenerateToken(user.ID)
+	token, err := auth.GenerateToken(user.ID, user.Role)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to generate token")
 		return
@@ -64,9 +64,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	var hash string
 	err := h.db.QueryRowContext(r.Context(),
-		`SELECT id, name, email, password_hash, created_at FROM users WHERE email = $1`,
+		`SELECT id, name, email, role, password_hash, created_at FROM users WHERE email = $1`,
 		req.Email,
-	).Scan(&user.ID, &user.Name, &user.Email, &hash, &user.CreatedAt)
+	).Scan(&user.ID, &user.Name, &user.Email, &user.Role, &hash, &user.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		writeError(w, http.StatusUnauthorized, "invalid credentials")
 		return
@@ -81,7 +81,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.GenerateToken(user.ID)
+	token, err := auth.GenerateToken(user.ID, user.Role)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to generate token")
 		return
@@ -94,8 +94,8 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	userID := userIDFromCtx(r)
 	var user model.User
 	err := h.db.QueryRowContext(r.Context(),
-		`SELECT id, name, email, created_at FROM users WHERE id = $1`, userID,
-	).Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt)
+		`SELECT id, name, email, role, created_at FROM users WHERE id = $1`, userID,
+	).Scan(&user.ID, &user.Name, &user.Email, &user.Role, &user.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		writeError(w, http.StatusNotFound, "user not found")
 		return
