@@ -44,20 +44,32 @@ func main() {
 
 	r.Group(func(r chi.Router) {
 		r.Use(h.Auth)
+
 		r.Get("/me", h.Me)
 		r.Get("/stats", h.GetStats)
-		r.Get("/jobs", h.ListJobs)
-		r.Post("/jobs", h.CreateJob)
-		r.Get("/jobs/{id}", h.GetJob)
-		r.Put("/jobs/{id}", h.UpdateJob)
-		r.Delete("/jobs/{id}", h.DeleteJob)
 
+		// job browsing (users + admins)
+		r.Get("/jobs", h.ListJobs)
+		r.Get("/jobs/{id}", h.GetJob)
+
+		// applications (users)
+		r.Post("/jobs/{id}/apply", h.Apply)
+		r.Get("/applications", h.MyApplications)
+
+		// admin only
 		r.Group(func(r chi.Router) {
 			r.Use(h.AdminOnly)
+
+			r.Get("/admin/jobs", h.AdminListJobs)
+			r.Post("/admin/jobs", h.AdminCreateJob)
+			r.Put("/admin/jobs/{id}", h.AdminUpdateJob)
+			r.Delete("/admin/jobs/{id}", h.AdminDeleteJob)
+			r.Get("/admin/jobs/{id}/applicants", h.AdminJobApplicants)
+			r.Put("/admin/applications/{id}/status", h.AdminUpdateApplicationStatus)
+
 			r.Get("/admin/users", h.ListUsers)
 			r.Delete("/admin/users/{id}", h.DeleteUser)
 			r.Put("/admin/users/{id}/role", h.UpdateUserRole)
-			r.Get("/admin/jobs", h.ListAllJobs)
 		})
 	})
 

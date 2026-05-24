@@ -3,33 +3,36 @@ package model
 import "time"
 
 type Job struct {
-	ID        int       `json:"id"`
-	Company   string    `json:"company"`
-	Position  string    `json:"position"`
-	Location  string    `json:"location"`
-	Salary    string    `json:"salary"`
-	Status    string    `json:"status"`
-	URL       string    `json:"url"`
-	Notes     string    `json:"notes"`
-	AppliedAt string    `json:"applied_at"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID             int       `json:"id"`
+	PostedBy       int       `json:"posted_by"`
+	Title          string    `json:"title"`
+	Company        string    `json:"company"`
+	Location       string    `json:"location"`
+	Salary         string    `json:"salary"`
+	Type           string    `json:"type"`
+	Description    string    `json:"description"`
+	URL            string    `json:"url"`
+	IsOpen         bool      `json:"is_open"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	ApplicantCount int       `json:"applicant_count,omitempty"`
+	HasApplied     bool      `json:"has_applied,omitempty"`
 }
 
 type JobRequest struct {
-	Company   string `json:"company"`
-	Position  string `json:"position"`
-	Location  string `json:"location"`
-	Salary    string `json:"salary"`
-	Status    string `json:"status"`
-	URL       string `json:"url"`
-	Notes     string `json:"notes"`
-	AppliedAt string `json:"applied_at"`
+	Title       string `json:"title"`
+	Company     string `json:"company"`
+	Location    string `json:"location"`
+	Salary      string `json:"salary"`
+	Type        string `json:"type"`
+	Description string `json:"description"`
+	URL         string `json:"url"`
+	IsOpen      bool   `json:"is_open"`
 }
 
 type Stats struct {
-	Total     int            `json:"total"`
-	ByStatus  map[string]int `json:"by_status"`
-	ThisWeek  int            `json:"this_week"`
-	ThisMonth int            `json:"this_month"`
+	TotalJobs         int `json:"total_jobs"`
+	OpenJobs          int `json:"open_jobs"`
+	TotalApplications int `json:"total_applications"`
+	MyApplications    int `json:"my_applications"`
 }

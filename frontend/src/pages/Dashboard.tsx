@@ -1,143 +1,114 @@
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, TrendingUp, Calendar, CheckCircle, XCircle, Clock, Award } from 'lucide-react'
-import { fetchStats, fetchJobs, createJob, deleteJob } from '../api/jobs'
-import JobForm from '../components/JobForm'
-import StatusBadge from '../components/StatusBadge'
-import type { JobPayload } from '../types'
-
-const statCards = [
-  { key: 'total',      label: 'Total Applications', icon: TrendingUp,  color: 'text-indigo-600', bg: 'bg-indigo-50' },
-  { key: 'this_week',  label: 'This Week',           icon: Calendar,    color: 'text-blue-600',   bg: 'bg-blue-50' },
-  { key: 'interview',  label: 'Interviews',           icon: Clock,       color: 'text-yellow-600', bg: 'bg-yellow-50' },
-  { key: 'offer',      label: 'Offers',               icon: Award,       color: 'text-green-600',  bg: 'bg-green-50' },
-]
+import { useQuery } from '@tanstack/react-query'
+import { Briefcase, Users, FileText, TrendingUp } from 'lucide-react'
+import { fetchStats } from '../api/jobs'
+import { fetchMyApplications } from '../api/applications'
+import { fetchAdminUsers } from '../api/admin'
+import { useAuthStore } from '../store/auth'
+import { AppStatusBadge } from '../components/StatusBadge'
 
 export default function Dashboard() {
-  const qc = useQueryClient()
-  const [showForm, setShowForm] = useState(false)
+  const user = useAuthStore((s) => s.user)
+  const isAdmin = user?.role === 'admin'
 
   const { data: stats } = useQuery({ queryKey: ['stats'], queryFn: fetchStats })
-  const { data: jobs = [], isLoading } = useQuery({ queryKey: ['jobs'], queryFn: () => fetchJobs() })
-
-  const addMutation = useMutation({
-    mutationFn: createJob,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['jobs'] }); qc.invalidateQueries({ queryKey: ['stats'] }) },
+  const { data: myApps = [] } = useQuery({
+    queryKey: ['my-applications'],
+    queryFn: fetchMyApplications,
+    enabled: !isAdmin,
   })
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteJob,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['jobs'] }); qc.invalidateQueries({ queryKey: ['stats'] }) },
+  const { data: users = [] } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: fetchAdminUsers,
+    enabled: isAdmin,
   })
-
-  const getStatValue = (key: string) => {
-    if (!stats) return 0
-    if (key === 'total') return stats.total
-    if (key === 'this_week') return stats.this_week
-    return stats.by_status?.[key as keyof typeof stats.by_status] ?? 0
-  }
-
-  const recentJobs = jobs.slice(0, 8)
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Track your job search progress</p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Job
-        </button>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">
+          Welcome back, {user?.name.split(' ')[0]} 👋
+        </h1>
+        <p className="text-gray-500 mt-1 text-sm">
+          {isAdmin ? 'Here\'s an overview of your platform' : 'Here\'s your job search progress'}
+        </p>
       </div>
 
-      {/* Stats */}
+      {/* Stats cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {statCards.map(({ key, label, icon: Icon, color, bg }) => (
-          <div key={key} className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-gray-500">{label}</span>
-              <div className={`w-8 h-8 ${bg} rounded-lg flex items-center justify-center`}>
-                <Icon className={`w-4 h-4 ${color}`} />
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-gray-900">{getStatValue(key)}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Status breakdown */}
-      {stats && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-8">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Status Breakdown</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {([
-              { status: 'applied',   icon: TrendingUp,  color: 'text-blue-600',   bg: 'bg-blue-50' },
-              { status: 'interview', icon: Clock,        color: 'text-yellow-600', bg: 'bg-yellow-50' },
-              { status: 'offer',     icon: Award,        color: 'text-green-600',  bg: 'bg-green-50' },
-              { status: 'rejected',  icon: XCircle,      color: 'text-red-600',    bg: 'bg-red-50' },
-            ] as const).map(({ status, icon: Icon, color, bg }) => (
-              <div key={status} className={`${bg} rounded-lg p-3 flex items-center gap-3`}>
-                <Icon className={`w-5 h-5 ${color}`} />
-                <div>
-                  <p className="text-xs text-gray-500 capitalize">{status}</p>
-                  <p className="text-xl font-bold text-gray-900">
-                    {stats.by_status?.[status] ?? 0}
-                  </p>
+        {isAdmin ? (
+          <>
+            {[
+              { label: 'Total Jobs',    value: stats?.total_jobs ?? 0,         icon: Briefcase, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+              { label: 'Open Jobs',     value: stats?.open_jobs ?? 0,          icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
+              { label: 'Applications',  value: stats?.total_applications ?? 0, icon: FileText,   color: 'text-blue-600',  bg: 'bg-blue-50' },
+              { label: 'Total Users',   value: users.length,                    icon: Users,      color: 'text-purple-600',bg: 'bg-purple-50' },
+            ].map(({ label, value, icon: Icon, color, bg }) => (
+              <div key={label} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-gray-500">{label}</span>
+                  <div className={`w-9 h-9 ${bg} rounded-xl flex items-center justify-center`}>
+                    <Icon className={`w-4 h-4 ${color}`} />
+                  </div>
                 </div>
+                <p className="text-3xl font-bold text-gray-900">{value}</p>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Recent jobs */}
-      <div className="bg-white rounded-xl border border-gray-200">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <h2 className="text-sm font-semibold text-gray-700">Recent Applications</h2>
-          <span className="text-xs text-gray-400">{jobs.length} total</span>
-        </div>
-        {isLoading ? (
-          <div className="p-8 text-center text-sm text-gray-400">Loading…</div>
-        ) : recentJobs.length === 0 ? (
-          <div className="p-8 text-center">
-            <CheckCircle className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-400">No applications yet. Add your first one!</p>
-          </div>
+          </>
         ) : (
-          <div className="divide-y divide-gray-100">
-            {recentJobs.map((job) => (
-              <div key={job.id} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{job.position}</p>
-                  <p className="text-xs text-gray-500 truncate">{job.company} {job.location && `· ${job.location}`}</p>
+          <>
+            {[
+              { label: 'Open Jobs',      value: stats?.open_jobs ?? 0,      icon: Briefcase,  color: 'text-indigo-600', bg: 'bg-indigo-50' },
+              { label: 'My Applications',value: stats?.my_applications ?? 0,icon: FileText,   color: 'text-blue-600',   bg: 'bg-blue-50' },
+              { label: 'Accepted',        value: myApps.filter(a => a.status === 'accepted').length, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
+              { label: 'Pending Review',  value: myApps.filter(a => a.status === 'pending').length,  icon: Users, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+            ].map(({ label, value, icon: Icon, color, bg }) => (
+              <div key={label} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-gray-500">{label}</span>
+                  <div className={`w-9 h-9 ${bg} rounded-xl flex items-center justify-center`}>
+                    <Icon className={`w-4 h-4 ${color}`} />
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 ml-4">
-                  <StatusBadge status={job.status} />
-                  <span className="text-xs text-gray-400 hidden sm:block">{job.applied_at}</span>
-                  <button
-                    onClick={() => deleteMutation.mutate(job.id)}
-                    className="text-gray-300 hover:text-red-500 transition-colors"
-                    title="Delete"
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </button>
-                </div>
+                <p className="text-3xl font-bold text-gray-900">{value}</p>
               </div>
             ))}
-          </div>
+          </>
         )}
       </div>
 
-      {showForm && (
-        <JobForm
-          onSubmit={(payload: JobPayload) => addMutation.mutateAsync(payload)}
-          onClose={() => setShowForm(false)}
-        />
+      {/* Recent activity */}
+      {!isAdmin && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">Recent Applications</h2>
+          </div>
+          {myApps.length === 0 ? (
+            <div className="p-10 text-center">
+              <Briefcase className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+              <p className="text-gray-400 text-sm">You haven't applied to any jobs yet.</p>
+              <a href="/jobs" className="mt-3 inline-block text-sm text-indigo-600 font-medium hover:underline">
+                Browse open positions →
+              </a>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {myApps.slice(0, 6).map((app) => (
+                <div key={app.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{app.job?.title}</p>
+                    <p className="text-xs text-gray-500">{app.job?.company} · {app.job?.location || 'Remote'}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <AppStatusBadge status={app.status} />
+                    <span className="text-xs text-gray-400">
+                      {new Date(app.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

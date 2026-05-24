@@ -13,8 +13,3 @@ export const deleteUser = async (id: number): Promise<void> => {
 export const updateUserRole = async (id: number, role: 'user' | 'admin'): Promise<void> => {
   await api.put(`/admin/users/${id}/role`, { role })
 }
-
-export const fetchAdminJobs = async () => {
-  const { data } = await api.get('/admin/jobs')
-  return data
-}

@@ -1,12 +1,8 @@
 package handler
 
 import (
-	"database/sql"
-	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/tastenalibek/jobtrack/internal/model"
@@ -14,24 +10,34 @@ import (
 
 func (h *Handler) ListJobs(w http.ResponseWriter, r *http.Request) {
 	userID := userIDFromCtx(r)
-	status := r.URL.Query().Get("status")
-	search := r.URL.Query().Get("q")
+	q := r.URL.Query().Get("q")
+	jobType := r.URL.Query().Get("type")
+	location := r.URL.Query().Get("location")
 
-	query := `SELECT id, company, position, location, salary, status, url, notes,
-	          to_char(applied_at, 'YYYY-MM-DD'), created_at, updated_at
-	          FROM jobs WHERE user_id = $1`
+	query := `
+		SELECT j.id, j.posted_by, j.title, j.company, j.location, j.salary,
+		       j.type, j.description, j.url, j.is_open, j.created_at, j.updated_at,
+		       COUNT(a.id) AS applicant_count,
+		       BOOL_OR(a.user_id = $1) AS has_applied
+		FROM jobs j
+		LEFT JOIN applications a ON a.job_id = j.id
+		WHERE j.is_open = true`
 	args := []any{userID}
 
-	if status != "" {
-		args = append(args, status)
-		query += " AND status = $" + strconv.Itoa(len(args))
-	}
-	if search != "" {
-		args = append(args, "%"+search+"%")
+	if q != "" {
+		args = append(args, "%"+q+"%")
 		n := strconv.Itoa(len(args))
-		query += " AND (company ILIKE $" + n + " OR position ILIKE $" + n + ")"
+		query += " AND (j.title ILIKE $" + n + " OR j.company ILIKE $" + n + " OR j.description ILIKE $" + n + ")"
 	}
-	query += " ORDER BY created_at DESC"
+	if jobType != "" {
+		args = append(args, jobType)
+		query += " AND j.type = $" + strconv.Itoa(len(args))
+	}
+	if location != "" {
+		args = append(args, "%"+location+"%")
+		query += " AND j.location ILIKE $" + strconv.Itoa(len(args))
+	}
+	query += " GROUP BY j.id ORDER BY j.created_at DESC"
 
 	rows, err := h.db.QueryContext(r.Context(), query, args...)
 	if err != nil {
@@ -43,53 +49,17 @@ func (h *Handler) ListJobs(w http.ResponseWriter, r *http.Request) {
 	jobs := []model.Job{}
 	for rows.Next() {
 		var j model.Job
-		if err := rows.Scan(&j.ID, &j.Company, &j.Position, &j.Location,
-			&j.Salary, &j.Status, &j.URL, &j.Notes,
-			&j.AppliedAt, &j.CreatedAt, &j.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&j.ID, &j.PostedBy, &j.Title, &j.Company, &j.Location, &j.Salary,
+			&j.Type, &j.Description, &j.URL, &j.IsOpen, &j.CreatedAt, &j.UpdatedAt,
+			&j.ApplicantCount, &j.HasApplied,
+		); err != nil {
 			writeError(w, http.StatusInternalServerError, "scan failed")
 			return
 		}
 		jobs = append(jobs, j)
 	}
-
 	writeJSON(w, http.StatusOK, jobs)
-}
-
-func (h *Handler) CreateJob(w http.ResponseWriter, r *http.Request) {
-	userID := userIDFromCtx(r)
-
-	var req model.JobRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON")
-		return
-	}
-	if req.Company == "" || req.Position == "" {
-		writeError(w, http.StatusUnprocessableEntity, "company and position are required")
-		return
-	}
-	if req.Status == "" {
-		req.Status = "applied"
-	}
-	if req.AppliedAt == "" {
-		req.AppliedAt = time.Now().Format("2006-01-02")
-	}
-
-	var j model.Job
-	err := h.db.QueryRowContext(r.Context(),
-		`INSERT INTO jobs (user_id, company, position, location, salary, status, url, notes, applied_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::date)
-		 RETURNING id, company, position, location, salary, status, url, notes,
-		 to_char(applied_at, 'YYYY-MM-DD'), created_at, updated_at`,
-		userID, req.Company, req.Position, req.Location, req.Salary,
-		req.Status, req.URL, req.Notes, req.AppliedAt,
-	).Scan(&j.ID, &j.Company, &j.Position, &j.Location, &j.Salary,
-		&j.Status, &j.URL, &j.Notes, &j.AppliedAt, &j.CreatedAt, &j.UpdatedAt)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "insert failed")
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, j)
 }
 
 func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request) {
@@ -101,87 +71,39 @@ func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var j model.Job
-	err = h.db.QueryRowContext(r.Context(),
-		`SELECT id, company, position, location, salary, status, url, notes,
-		 to_char(applied_at, 'YYYY-MM-DD'), created_at, updated_at
-		 FROM jobs WHERE id = $1 AND user_id = $2`,
-		id, userID,
-	).Scan(&j.ID, &j.Company, &j.Position, &j.Location, &j.Salary,
-		&j.Status, &j.URL, &j.Notes, &j.AppliedAt, &j.CreatedAt, &j.UpdatedAt)
-	if errors.Is(err, sql.ErrNoRows) {
+	err = h.db.QueryRowContext(r.Context(), `
+		SELECT j.id, j.posted_by, j.title, j.company, j.location, j.salary,
+		       j.type, j.description, j.url, j.is_open, j.created_at, j.updated_at,
+		       COUNT(a.id), BOOL_OR(a.user_id = $1)
+		FROM jobs j
+		LEFT JOIN applications a ON a.job_id = j.id
+		WHERE j.id = $2
+		GROUP BY j.id`, userID, id,
+	).Scan(&j.ID, &j.PostedBy, &j.Title, &j.Company, &j.Location, &j.Salary,
+		&j.Type, &j.Description, &j.URL, &j.IsOpen, &j.CreatedAt, &j.UpdatedAt,
+		&j.ApplicantCount, &j.HasApplied)
+	if err != nil {
 		writeError(w, http.StatusNotFound, "job not found")
 		return
 	}
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "query failed")
-		return
-	}
-
 	writeJSON(w, http.StatusOK, j)
 }
 
-func (h *Handler) UpdateJob(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetStats(w http.ResponseWriter, r *http.Request) {
 	userID := userIDFromCtx(r)
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid id")
-		return
+	role := roleFromCtx(r)
+
+	var stats model.Stats
+
+	h.db.QueryRowContext(r.Context(), `SELECT COUNT(*) FROM jobs`).Scan(&stats.TotalJobs)
+	h.db.QueryRowContext(r.Context(), `SELECT COUNT(*) FROM jobs WHERE is_open = true`).Scan(&stats.OpenJobs)
+	h.db.QueryRowContext(r.Context(), `SELECT COUNT(*) FROM applications`).Scan(&stats.TotalApplications)
+
+	if role != "admin" {
+		h.db.QueryRowContext(r.Context(),
+			`SELECT COUNT(*) FROM applications WHERE user_id = $1`, userID,
+		).Scan(&stats.MyApplications)
 	}
 
-	var req model.JobRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON")
-		return
-	}
-	if req.Company == "" || req.Position == "" {
-		writeError(w, http.StatusUnprocessableEntity, "company and position are required")
-		return
-	}
-	if req.AppliedAt == "" {
-		req.AppliedAt = time.Now().Format("2006-01-02")
-	}
-
-	var j model.Job
-	err = h.db.QueryRowContext(r.Context(),
-		`UPDATE jobs SET company=$1, position=$2, location=$3, salary=$4, status=$5,
-		 url=$6, notes=$7, applied_at=$8::date, updated_at=now()
-		 WHERE id=$9 AND user_id=$10
-		 RETURNING id, company, position, location, salary, status, url, notes,
-		 to_char(applied_at, 'YYYY-MM-DD'), created_at, updated_at`,
-		req.Company, req.Position, req.Location, req.Salary, req.Status,
-		req.URL, req.Notes, req.AppliedAt, id, userID,
-	).Scan(&j.ID, &j.Company, &j.Position, &j.Location, &j.Salary,
-		&j.Status, &j.URL, &j.Notes, &j.AppliedAt, &j.CreatedAt, &j.UpdatedAt)
-	if errors.Is(err, sql.ErrNoRows) {
-		writeError(w, http.StatusNotFound, "job not found")
-		return
-	}
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "update failed")
-		return
-	}
-
-	writeJSON(w, http.StatusOK, j)
-}
-
-func (h *Handler) DeleteJob(w http.ResponseWriter, r *http.Request) {
-	userID := userIDFromCtx(r)
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid id")
-		return
-	}
-
-	res, err := h.db.ExecContext(r.Context(),
-		`DELETE FROM jobs WHERE id = $1 AND user_id = $2`, id, userID)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "delete failed")
-		return
-	}
-	if n, _ := res.RowsAffected(); n == 0 {
-		writeError(w, http.StatusNotFound, "job not found")
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
+	writeJSON(w, http.StatusOK, stats)
 }
