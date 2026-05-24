@@ -1,0 +1,23 @@
+# env
+.env
+
+# binaries
+backend/jobtrack
+
+# go
+backend/vendor/
+backend/*.out
+backend/*.test
+
+# node
+frontend/node_modules/
+frontend/dist/
+
+# os
+.DS_Store
+Thumbs.db
+
+# editors
+.idea/
+.vscode/
+*.swp
