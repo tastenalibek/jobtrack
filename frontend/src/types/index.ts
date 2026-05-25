@@ -46,6 +46,7 @@ export interface JobPayload {
 }
 
 export type AppStatus = 'pending' | 'reviewed' | 'accepted' | 'rejected'
+export type KanbanStage = 'applied' | 'interview' | 'offer' | 'rejected'
 
 export interface Application {
   id: number
@@ -53,6 +54,7 @@ export interface Application {
   user_id: number
   cover_letter: string
   status: AppStatus
+  stage: KanbanStage
   created_at: string
   updated_at: string
   job?: Pick<Job, 'id' | 'title' | 'company' | 'location' | 'salary' | 'type'>

@@ -1,9 +1,14 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Search, MapPin, DollarSign, Users, ExternalLink, CheckCircle, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Search, MapPin, DollarSign, Users, ExternalLink,
+  CheckCircle, X, BriefcaseIcon,
+} from 'lucide-react'
 import { fetchJobs } from '../api/jobs'
 import { applyToJob } from '../api/applications'
 import { JobTypeBadge } from '../components/StatusBadge'
+import { useToast } from '../context/toast'
 import type { Job, JobType } from '../types'
 
 const JOB_TYPES: { value: string; label: string }[] = [
@@ -17,57 +22,56 @@ const JOB_TYPES: { value: string; label: string }[] = [
 
 function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
   const qc = useQueryClient()
+  const { success, error } = useToast()
   const [coverLetter, setCoverLetter] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const handleApply = async () => {
     setLoading(true)
-    setError('')
     try {
       await applyToJob(job.id, coverLetter)
       qc.invalidateQueries({ queryKey: ['jobs'] })
       qc.invalidateQueries({ queryKey: ['my-applications'] })
       qc.invalidateQueries({ queryKey: ['stats'] })
+      success(`Applied to ${job.title} at ${job.company}!`)
       onClose()
     } catch {
-      setError('Failed to submit application. Please try again.')
+      error('Failed to submit application. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 border border-slate-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div>
-            <h2 className="font-bold text-gray-900">Apply to {job.title}</h2>
-            <p className="text-sm text-gray-500">{job.company}</p>
+            <h2 className="font-bold text-slate-900">Apply to {job.title}</h2>
+            <p className="text-sm text-slate-500">{job.company}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg">
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="px-6 py-5">
-          {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg mb-4">{error}</p>}
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Cover letter <span className="text-gray-400 font-normal">(optional)</span>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Cover letter <span className="text-slate-400 font-normal">(optional)</span>
           </label>
           <textarea
             rows={5}
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
             placeholder="Tell us why you're a great fit for this role…"
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none bg-slate-50 placeholder:text-slate-400"
           />
           <div className="flex gap-3 mt-4">
             <button onClick={onClose}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200">
+              className="flex-1 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">
               Cancel
             </button>
             <button onClick={handleApply} disabled={loading}
-              className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50">
+              className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50 shadow-sm shadow-indigo-500/25 transition-colors">
               {loading ? 'Submitting…' : 'Submit Application'}
             </button>
           </div>
@@ -77,63 +81,82 @@ function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
   )
 }
 
+const LOGO_COLORS = [
+  'from-indigo-500 to-indigo-600',
+  'from-violet-500 to-violet-600',
+  'from-blue-500 to-blue-600',
+  'from-teal-500 to-teal-600',
+  'from-orange-500 to-orange-600',
+  'from-rose-500 to-rose-600',
+  'from-emerald-500 to-emerald-600',
+  'from-cyan-500 to-cyan-600',
+]
+
 function JobCard({ job, onApply }: { job: Job; onApply: (j: Job) => void }) {
-  const initials = job.company.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
-  const colors = ['bg-indigo-500', 'bg-violet-500', 'bg-blue-500', 'bg-teal-500', 'bg-orange-500', 'bg-rose-500']
-  const color = colors[job.company.charCodeAt(0) % colors.length]
+  const navigate = useNavigate()
+  const initials = job.company.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
+  const grad = LOGO_COLORS[job.company.charCodeAt(0) % LOGO_COLORS.length]
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md hover:border-indigo-200 transition-all group">
-      <div className="flex items-start gap-4 mb-4">
-        <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center shrink-0 text-white font-bold text-sm shadow-sm`}>
+    <div
+      className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-lg hover:border-indigo-100 transition-all group cursor-pointer shadow-sm"
+      onClick={() => navigate(`/jobs/${job.id}`)}
+    >
+      <div className="flex items-start gap-3 mb-4">
+        <div className={`w-11 h-11 bg-gradient-to-br ${grad} rounded-xl flex items-center justify-center shrink-0 text-white font-bold text-sm shadow-sm`}>
           {initials}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+          <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1 text-[15px]">
             {job.title}
           </h3>
-          <p className="text-sm text-gray-500">{job.company}</p>
+          <p className="text-sm text-slate-500">{job.company}</p>
         </div>
         {job.url && (
-          <a href={job.url} target="_blank" rel="noopener noreferrer"
-            className="text-gray-300 hover:text-indigo-500 transition-colors shrink-0">
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-slate-300 hover:text-indigo-500 transition-colors shrink-0"
+          >
             <ExternalLink className="w-4 h-4" />
           </a>
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-1.5 mb-3">
         <JobTypeBadge type={job.type as JobType} />
         {job.location && (
-          <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+          <span className="inline-flex items-center gap-1 text-xs text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
             <MapPin className="w-3 h-3" />{job.location}
           </span>
         )}
         {job.salary && (
-          <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+          <span className="inline-flex items-center gap-1 text-xs text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
             <DollarSign className="w-3 h-3" />{job.salary}
           </span>
         )}
       </div>
 
       {job.description && (
-        <p className="text-sm text-gray-500 line-clamp-2 mb-4">{job.description}</p>
+        <p className="text-sm text-slate-500 line-clamp-2 mb-4 leading-relaxed">{job.description}</p>
       )}
 
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <span className="flex items-center gap-1 text-xs text-gray-400">
+      <div className="flex items-center justify-between pt-3.5 border-t border-slate-50">
+        <span className="flex items-center gap-1 text-xs text-slate-400">
           <Users className="w-3.5 h-3.5" />
           {job.applicant_count} applicant{job.applicant_count !== 1 ? 's' : ''}
         </span>
         {job.has_applied ? (
-          <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
+          <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
             <CheckCircle className="w-4 h-4" />
             Applied
           </span>
         ) : (
           <button
-            onClick={() => onApply(job)}
-            className="px-4 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+            onClick={(e) => { e.stopPropagation(); onApply(job) }}
+            className="px-4 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-500/20"
           >
             Apply Now
           </button>
@@ -157,34 +180,33 @@ export default function JobsPage() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Job Listings</h1>
-        <p className="text-gray-500 text-sm mt-1">{jobs.length} open position{jobs.length !== 1 ? 's' : ''}</p>
+        <h1 className="text-2xl font-bold text-slate-900">Job Listings</h1>
+        <p className="text-slate-500 text-sm mt-1">{jobs.length} open position{jobs.length !== 1 ? 's' : ''}</p>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search title, company, or description…"
-            className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 placeholder:text-slate-400"
           />
         </div>
         <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder="Location…"
-            className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            className="w-full sm:w-44 pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 placeholder:text-slate-400"
           />
         </div>
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          className="py-2.5 px-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-700"
+          className="py-2.5 px-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-slate-700"
         >
           {JOB_TYPES.map(({ value, label }) => (
             <option key={value} value={value}>{label}</option>
@@ -195,13 +217,16 @@ export default function JobsPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse h-52" />
+            <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse h-52 shadow-sm" />
           ))}
         </div>
       ) : jobs.length === 0 ? (
         <div className="text-center py-20">
-          <Briefcase className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-          <p className="text-gray-400">No jobs found matching your filters.</p>
+          <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <BriefcaseIcon className="w-8 h-8 text-slate-400" />
+          </div>
+          <p className="text-slate-500 font-medium">No jobs found matching your filters.</p>
+          <p className="text-slate-400 text-sm mt-1">Try adjusting your search criteria.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -213,14 +238,5 @@ export default function JobsPage() {
 
       {applyingTo && <ApplyModal job={applyingTo} onClose={() => setApplyingTo(null)} />}
     </div>
-  )
-}
-
-function Briefcase(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-      <rect x="2" y="7" width="20" height="14" rx="2" />
-      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-    </svg>
   )
 }

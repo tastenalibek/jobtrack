@@ -57,10 +57,15 @@ func Migrate(database *sql.DB) error {
 			cover_letter TEXT NOT NULL DEFAULT '',
 			status       TEXT NOT NULL DEFAULT 'pending'
 				CHECK (status IN ('pending', 'reviewed', 'accepted', 'rejected')),
+			stage        TEXT NOT NULL DEFAULT 'applied'
+				CHECK (stage IN ('applied', 'interview', 'offer', 'rejected')),
 			created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
 			updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
 			UNIQUE(job_id, user_id)
 		);
+
+		ALTER TABLE applications ADD COLUMN IF NOT EXISTS stage TEXT NOT NULL DEFAULT 'applied'
+			CHECK (stage IN ('applied', 'interview', 'offer', 'rejected'));
 	`)
 	return err
 }

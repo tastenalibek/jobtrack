@@ -140,7 +140,7 @@ func (h *Handler) AdminJobApplicants(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := h.db.QueryContext(r.Context(), `
-		SELECT a.id, a.job_id, a.user_id, a.cover_letter, a.status, a.created_at, a.updated_at,
+		SELECT a.id, a.job_id, a.user_id, a.cover_letter, a.status, a.stage, a.created_at, a.updated_at,
 		       u.name, u.email
 		FROM applications a
 		JOIN users u ON u.id = a.user_id
@@ -156,7 +156,7 @@ func (h *Handler) AdminJobApplicants(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var a model.Application
 		if err := rows.Scan(
-			&a.ID, &a.JobID, &a.UserID, &a.CoverLetter, &a.Status, &a.CreatedAt, &a.UpdatedAt,
+			&a.ID, &a.JobID, &a.UserID, &a.CoverLetter, &a.Status, &a.Stage, &a.CreatedAt, &a.UpdatedAt,
 			&a.UserName, &a.UserEmail,
 		); err != nil {
 			writeError(w, http.StatusInternalServerError, "scan failed")
@@ -193,9 +193,9 @@ func (h *Handler) AdminUpdateApplicationStatus(w http.ResponseWriter, r *http.Re
 	err = h.db.QueryRowContext(r.Context(),
 		`UPDATE applications SET status=$1, updated_at=now()
 		 WHERE id=$2
-		 RETURNING id, job_id, user_id, cover_letter, status, created_at, updated_at`,
+		 RETURNING id, job_id, user_id, cover_letter, status, stage, created_at, updated_at`,
 		body.Status, id,
-	).Scan(&app.ID, &app.JobID, &app.UserID, &app.CoverLetter, &app.Status, &app.CreatedAt, &app.UpdatedAt)
+	).Scan(&app.ID, &app.JobID, &app.UserID, &app.CoverLetter, &app.Status, &app.Stage, &app.CreatedAt, &app.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		writeError(w, http.StatusNotFound, "application not found")
 		return

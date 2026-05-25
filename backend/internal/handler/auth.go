@@ -90,6 +90,68 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, model.AuthResponse{Token: token, User: user})
 }
 
+func (h *Handler) UpdateMe(w http.ResponseWriter, r *http.Request) {
+	userID := userIDFromCtx(r)
+
+	var req struct {
+		Name            string `json:"name"`
+		CurrentPassword string `json:"current_password"`
+		NewPassword     string `json:"new_password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid JSON")
+		return
+	}
+
+	if req.NewPassword != "" {
+		if req.CurrentPassword == "" {
+			writeError(w, http.StatusUnprocessableEntity, "current password required to change password")
+			return
+		}
+		if len(req.NewPassword) < 8 {
+			writeError(w, http.StatusUnprocessableEntity, "password must be at least 8 characters")
+			return
+		}
+		var hash string
+		if err := h.db.QueryRowContext(r.Context(),
+			`SELECT password_hash FROM users WHERE id = $1`, userID).Scan(&hash); err != nil {
+			writeError(w, http.StatusInternalServerError, "query failed")
+			return
+		}
+		if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(req.CurrentPassword)); err != nil {
+			writeError(w, http.StatusUnauthorized, "current password is incorrect")
+			return
+		}
+		newHash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to hash password")
+			return
+		}
+		if _, err := h.db.ExecContext(r.Context(),
+			`UPDATE users SET password_hash = $1 WHERE id = $2`, string(newHash), userID); err != nil {
+			writeError(w, http.StatusInternalServerError, "update failed")
+			return
+		}
+	}
+
+	if req.Name != "" {
+		if _, err := h.db.ExecContext(r.Context(),
+			`UPDATE users SET name = $1 WHERE id = $2`, req.Name, userID); err != nil {
+			writeError(w, http.StatusInternalServerError, "update failed")
+			return
+		}
+	}
+
+	var user model.User
+	if err := h.db.QueryRowContext(r.Context(),
+		`SELECT id, name, email, role, created_at FROM users WHERE id = $1`, userID,
+	).Scan(&user.ID, &user.Name, &user.Email, &user.Role, &user.CreatedAt); err != nil {
+		writeError(w, http.StatusInternalServerError, "query failed")
+		return
+	}
+	writeJSON(w, http.StatusOK, user)
+}
+
 func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	userID := userIDFromCtx(r)
 	var user model.User

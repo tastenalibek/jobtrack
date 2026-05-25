@@ -6,7 +6,10 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Jobs from './pages/Jobs'
+import JobDetail from './pages/JobDetail'
 import Applications from './pages/Applications'
+import Board from './pages/Board'
+import Profile from './pages/Profile'
 import Admin from './pages/Admin'
 import AdminJobs from './pages/AdminJobs'
 import AdminApplicants from './pages/AdminApplicants'
@@ -20,6 +23,11 @@ function Guard({ children }: { children: React.ReactNode }) {
   return token ? <>{children}</> : <Navigate to="/login" replace />
 }
 
+function AdminGuard({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user)
+  return user?.role === 'admin' ? <>{children}</> : <Navigate to="/" replace />
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -27,16 +35,17 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route
-            path="/"
-            element={<Guard><Layout /></Guard>}
-          >
+          <Route path="/" element={<Guard><Layout /></Guard>}>
             <Route index element={<Dashboard />} />
             <Route path="jobs" element={<Jobs />} />
+            <Route path="jobs/:id" element={<JobDetail />} />
             <Route path="applications" element={<Applications />} />
-            <Route path="admin" element={<Admin />} />
-            <Route path="admin/jobs" element={<AdminJobs />} />
-            <Route path="admin/jobs/:id/applicants" element={<AdminApplicants />} />
+            <Route path="board" element={<Board />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="admin" element={<AdminGuard><Admin /></AdminGuard>} />
+            <Route path="admin/jobs" element={<AdminGuard><AdminJobs /></AdminGuard>} />
+            <Route path="admin/users" element={<AdminGuard><Admin /></AdminGuard>} />
+            <Route path="admin/jobs/:id/applicants" element={<AdminGuard><AdminApplicants /></AdminGuard>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

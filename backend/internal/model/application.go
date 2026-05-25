@@ -8,6 +8,7 @@ type Application struct {
 	UserID      int       `json:"user_id"`
 	CoverLetter string    `json:"cover_letter"`
 	Status      string    `json:"status"`
+	Stage       string    `json:"stage"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	Job         *Job      `json:"job,omitempty"`

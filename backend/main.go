@@ -55,6 +55,11 @@ func main() {
 		// applications (users)
 		r.Post("/jobs/{id}/apply", h.Apply)
 		r.Get("/applications", h.MyApplications)
+		r.Delete("/applications/{id}", h.WithdrawApplication)
+		r.Put("/applications/{id}/stage", h.UpdateApplicationStage)
+
+		// profile
+		r.Put("/me", h.UpdateMe)
 
 		// admin only
 		r.Group(func(r chi.Router) {
