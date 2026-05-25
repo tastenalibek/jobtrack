@@ -45,8 +45,8 @@ export default function ApplicationsPage() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">My Applications</h1>
-        <p className="text-slate-500 text-sm mt-1">{apps.length} application{apps.length !== 1 ? 's' : ''}</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Applications</h1>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{apps.length} application{apps.length !== 1 ? 's' : ''}</p>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-5">
@@ -57,7 +57,7 @@ export default function ApplicationsPage() {
             className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all ${
               statusFilter === value
                 ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-indigo-300 hover:text-indigo-600'
             }`}
           >
             {label}
@@ -68,20 +68,20 @@ export default function ApplicationsPage() {
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse h-24 shadow-sm" />
+            <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 animate-pulse h-24 shadow-sm" />
           ))}
         </div>
       ) : apps.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-100 p-16 text-center shadow-sm">
-          <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-16 text-center shadow-sm">
+          <div className="w-14 h-14 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <FileText className="w-7 h-7 text-slate-400" />
           </div>
-          <p className="text-slate-600 font-medium">
+          <p className="text-slate-600 dark:text-slate-300 font-medium">
             {statusFilter ? `No ${statusFilter} applications` : 'No applications yet'}
           </p>
           {!statusFilter && (
             <>
-              <p className="text-slate-400 text-sm mt-1">Browse job listings and hit Apply Now to get started.</p>
+              <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Browse job listings and hit Apply Now to get started.</p>
               <a href="/jobs" className="mt-4 inline-block text-sm text-indigo-600 font-medium hover:underline">
                 Browse open positions →
               </a>
@@ -89,16 +89,16 @@ export default function ApplicationsPage() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-50 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 divide-y divide-slate-50 dark:divide-slate-700 shadow-sm">
           {apps.map((app) => (
-            <div key={app.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors group">
+            <div key={app.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <p className="font-semibold text-slate-900 truncate">{app.job?.title ?? '—'}</p>
+                  <p className="font-semibold text-slate-900 dark:text-white truncate">{app.job?.title ?? '—'}</p>
                   {app.job?.type && <JobTypeBadge type={app.job.type} />}
                 </div>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                  <span className="font-medium text-slate-700">{app.job?.company}</span>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-medium text-slate-700 dark:text-slate-200">{app.job?.company}</span>
                   {app.job?.location && (
                     <span className="flex items-center gap-1">
                       <MapPin className="w-3 h-3" />{app.job.location}
@@ -115,14 +115,14 @@ export default function ApplicationsPage() {
               <div className="flex items-center gap-3 shrink-0">
                 <KanbanStageBadge stage={app.stage ?? 'applied'} />
                 <AppStatusBadge status={app.status as AppStatus} />
-                <span className="flex items-center gap-1 text-xs text-slate-400">
+                <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
                   <Calendar className="w-3 h-3" />
                   {new Date(app.created_at).toLocaleDateString()}
                 </span>
                 <button
                   disabled={withdrawingId === app.id}
                   onClick={() => handleWithdraw(app.id, app.job?.title ?? 'this job')}
-                  className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                  className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
                   title="Withdraw application"
                 >
                   <Trash2 className="w-4 h-4" />

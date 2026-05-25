@@ -2,12 +2,14 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
 import {
   LayoutDashboard, Briefcase, FileText, ShieldCheck, LogOut,
-  Users, Kanban, User,
+  Users, Kanban, User, Sun, Moon,
 } from 'lucide-react'
+import { useTheme } from '../context/theme'
 
 export default function Layout() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
+  const { theme, toggle } = useTheme()
   const isAdmin = user?.role === 'admin'
 
   const handleLogout = () => { logout(); navigate('/login') }
@@ -94,6 +96,13 @@ export default function Layout() {
               <p className="text-[10px] text-slate-500 capitalize">{user?.role}</p>
             </div>
             <button
+              onClick={toggle}
+              className="p-1.5 text-slate-500 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            </button>
+            <button
               onClick={handleLogout}
               className="p-1.5 text-slate-500 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
               title="Logout"
@@ -104,7 +113,7 @@ export default function Layout() {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto bg-white">
+      <main className="flex-1 overflow-auto bg-white dark:bg-slate-900">
         <Outlet />
       </main>
     </div>

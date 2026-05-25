@@ -44,18 +44,18 @@ function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 border border-slate-100">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 border border-slate-100 dark:border-slate-700">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
           <div>
-            <h2 className="font-bold text-slate-900">Apply to {job.title}</h2>
-            <p className="text-sm text-slate-500">{job.company}</p>
+            <h2 className="font-bold text-slate-900 dark:text-white">Apply to {job.title}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{job.company}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg">
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="px-6 py-5">
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
             Cover letter <span className="text-slate-400 font-normal">(optional)</span>
           </label>
           <textarea
@@ -63,11 +63,11 @@ function ApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
             placeholder="Tell us why you're a great fit for this role…"
-            className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none bg-slate-50 placeholder:text-slate-400"
+            className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none bg-slate-50 dark:bg-slate-700 dark:text-white placeholder:text-slate-400"
           />
           <div className="flex gap-3 mt-4">
             <button onClick={onClose}
-              className="flex-1 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">
+              className="flex-1 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
               Cancel
             </button>
             <button onClick={handleApply} disabled={loading}
@@ -99,7 +99,7 @@ function JobCard({ job, onApply }: { job: Job; onApply: (j: Job) => void }) {
 
   return (
     <div
-      className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-lg hover:border-indigo-100 transition-all group cursor-pointer shadow-sm"
+      className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 hover:shadow-lg hover:border-indigo-100 dark:hover:border-indigo-700 transition-all group cursor-pointer shadow-sm"
       onClick={() => navigate(`/jobs/${job.id}`)}
     >
       <div className="flex items-start gap-3 mb-4">
@@ -107,10 +107,10 @@ function JobCard({ job, onApply }: { job: Job; onApply: (j: Job) => void }) {
           {initials}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1 text-[15px]">
+          <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors line-clamp-1 text-[15px]">
             {job.title}
           </h3>
-          <p className="text-sm text-slate-500">{job.company}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{job.company}</p>
         </div>
         {job.url && (
           <a
@@ -128,23 +128,23 @@ function JobCard({ job, onApply }: { job: Job; onApply: (j: Job) => void }) {
       <div className="flex flex-wrap gap-1.5 mb-3">
         <JobTypeBadge type={job.type as JobType} />
         {job.location && (
-          <span className="inline-flex items-center gap-1 text-xs text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
+          <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700 px-2 py-0.5 rounded-full border border-slate-100 dark:border-slate-600">
             <MapPin className="w-3 h-3" />{job.location}
           </span>
         )}
         {job.salary && (
-          <span className="inline-flex items-center gap-1 text-xs text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
+          <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700 px-2 py-0.5 rounded-full border border-slate-100 dark:border-slate-600">
             <DollarSign className="w-3 h-3" />{job.salary}
           </span>
         )}
       </div>
 
       {job.description && (
-        <p className="text-sm text-slate-500 line-clamp-2 mb-4 leading-relaxed">{job.description}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">{job.description}</p>
       )}
 
-      <div className="flex items-center justify-between pt-3.5 border-t border-slate-50">
-        <span className="flex items-center gap-1 text-xs text-slate-400">
+      <div className="flex items-center justify-between pt-3.5 border-t border-slate-50 dark:border-slate-700">
+        <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
           <Users className="w-3.5 h-3.5" />
           {job.applicant_count} applicant{job.applicant_count !== 1 ? 's' : ''}
         </span>
@@ -180,8 +180,8 @@ export default function JobsPage() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Job Listings</h1>
-        <p className="text-slate-500 text-sm mt-1">{jobs.length} open position{jobs.length !== 1 ? 's' : ''}</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Job Listings</h1>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{jobs.length} open position{jobs.length !== 1 ? 's' : ''}</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -191,7 +191,7 @@ export default function JobsPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search title, company, or description…"
-            className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 placeholder:text-slate-400"
+            className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 dark:bg-slate-700 dark:text-white placeholder:text-slate-400"
           />
         </div>
         <div className="relative">
@@ -200,13 +200,13 @@ export default function JobsPage() {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder="Location…"
-            className="w-full sm:w-44 pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 placeholder:text-slate-400"
+            className="w-full sm:w-44 pl-9 pr-3 py-2.5 text-sm border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 dark:bg-slate-700 dark:text-white placeholder:text-slate-400"
           />
         </div>
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          className="py-2.5 px-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-slate-700"
+          className="py-2.5 px-3 text-sm border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 dark:bg-slate-700 text-slate-700 dark:text-white"
         >
           {JOB_TYPES.map(({ value, label }) => (
             <option key={value} value={value}>{label}</option>
@@ -217,16 +217,16 @@ export default function JobsPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse h-52 shadow-sm" />
+            <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 animate-pulse h-52 shadow-sm" />
           ))}
         </div>
       ) : jobs.length === 0 ? (
         <div className="text-center py-20">
-          <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <BriefcaseIcon className="w-8 h-8 text-slate-400" />
           </div>
-          <p className="text-slate-500 font-medium">No jobs found matching your filters.</p>
-          <p className="text-slate-400 text-sm mt-1">Try adjusting your search criteria.</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">No jobs found matching your filters.</p>
+          <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Try adjusting your search criteria.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

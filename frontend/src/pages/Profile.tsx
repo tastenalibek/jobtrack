@@ -58,14 +58,13 @@ export default function ProfilePage() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Profile Settings</h1>
-        <p className="text-slate-500 text-sm mt-1">Manage your account information</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Profile Settings</h1>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage your account information</p>
       </div>
 
-      {/* Account info */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-5">
-        <div className="px-6 py-4 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-5">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+          <h2 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
             <User className="w-4 h-4 text-indigo-600" />
             Account Info
           </h2>
@@ -74,22 +73,22 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3 py-2">
             <Mail className="w-4 h-4 text-slate-400 shrink-0" />
             <div>
-              <p className="text-xs text-slate-400">Email</p>
-              <p className="text-sm font-medium text-slate-900">{user?.email}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">Email</p>
+              <p className="text-sm font-medium text-slate-900 dark:text-white">{user?.email}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 py-2">
             <Shield className="w-4 h-4 text-slate-400 shrink-0" />
             <div>
-              <p className="text-xs text-slate-400">Role</p>
-              <p className="text-sm font-medium text-slate-900 capitalize">{user?.role}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">Role</p>
+              <p className="text-sm font-medium text-slate-900 dark:text-white capitalize">{user?.role}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 py-2">
             <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
             <div>
-              <p className="text-xs text-slate-400">Member since</p>
-              <p className="text-sm font-medium text-slate-900">
+              <p className="text-xs text-slate-400 dark:text-slate-500">Member since</p>
+              <p className="text-sm font-medium text-slate-900 dark:text-white">
                 {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
               </p>
             </div>
@@ -97,21 +96,20 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Update name */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-5">
-        <div className="px-6 py-4 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-5">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+          <h2 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
             <User className="w-4 h-4 text-indigo-600" />
             Display Name
           </h2>
         </div>
         <div className="p-6">
-          <label className="block text-sm font-medium text-slate-700 mb-2">Full name</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">Full name</label>
           <div className="flex gap-3">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Your full name"
             />
             <button
@@ -125,42 +123,41 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Change password */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+          <h2 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
             <Lock className="w-4 h-4 text-indigo-600" />
             Change Password
           </h2>
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Current password</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">Current password</label>
             <input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="••••••••"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">New password</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">New password</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Min. 8 characters"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm new password</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">Confirm new password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="••••••••"
             />
           </div>

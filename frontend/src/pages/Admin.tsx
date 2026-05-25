@@ -42,70 +42,70 @@ export default function Admin() {
   }
 
   const cards = [
-    { label: 'Total Jobs',   value: stats?.total_jobs ?? 0,         icon: Briefcase, color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100' },
-    { label: 'Open Jobs',    value: stats?.open_jobs ?? 0,          icon: Briefcase, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
-    { label: 'Applications', value: stats?.total_applications ?? 0, icon: FileText,  color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-100' },
-    { label: 'Total Users',  value: users.length,                   icon: Users,     color: 'text-violet-600',  bg: 'bg-violet-50',  border: 'border-violet-100' },
+    { label: 'Total Jobs',   value: stats?.total_jobs ?? 0,         icon: Briefcase, color: 'text-indigo-600',  bg: 'bg-indigo-50 dark:bg-indigo-900/30',  border: 'border-indigo-100 dark:border-indigo-800' },
+    { label: 'Open Jobs',    value: stats?.open_jobs ?? 0,          icon: Briefcase, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', border: 'border-emerald-100 dark:border-emerald-800' },
+    { label: 'Applications', value: stats?.total_applications ?? 0, icon: FileText,  color: 'text-blue-600',    bg: 'bg-blue-50 dark:bg-blue-900/30',       border: 'border-blue-100 dark:border-blue-800' },
+    { label: 'Total Users',  value: users.length,                   icon: Users,     color: 'text-violet-600',  bg: 'bg-violet-50 dark:bg-violet-900/30',   border: 'border-violet-100 dark:border-violet-800' },
   ]
 
   return (
     <div className="p-8">
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+        <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center">
           <Shield className="w-5 h-5 text-indigo-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Admin Panel</h1>
-          <p className="text-slate-500 text-sm">Platform overview and user management</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Admin Panel</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Platform overview and user management</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {cards.map(({ label, value, icon: Icon, color, bg, border }) => (
-          <div key={label} className={`bg-white rounded-2xl border ${border} p-5 shadow-sm`}>
+          <div key={label} className={`bg-white dark:bg-slate-800 rounded-2xl border ${border} p-5 shadow-sm`}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-slate-500">{label}</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
               <div className={`w-9 h-9 ${bg} rounded-xl flex items-center justify-center`}>
                 <Icon className={`w-4 h-4 ${color}`} />
               </div>
             </div>
-            <p className="text-3xl font-bold text-slate-900">{value}</p>
+            <p className="text-3xl font-bold text-slate-900 dark:text-white">{value}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="font-semibold text-slate-900">All Users</h2>
-          <span className="text-sm text-slate-400">{users.length} total</span>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+          <h2 className="font-semibold text-slate-900 dark:text-white">All Users</h2>
+          <span className="text-sm text-slate-400 dark:text-slate-500">{users.length} total</span>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-slate-100 dark:divide-slate-700">
           {users.map((u) => {
             const isSelf = u.id === currentUser?.id
             return (
-              <div key={u.id} className="flex items-center gap-4 px-6 py-3.5 hover:bg-slate-50 transition-colors">
-                <div className="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center shrink-0">
-                  <span className="text-sm font-bold text-indigo-600">
+              <div key={u.id} className="flex items-center gap-4 px-6 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <div className="w-9 h-9 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center shrink-0">
+                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
                     {u.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-slate-900">{u.name}</p>
-                    {isSelf && <span className="text-xs text-slate-400">(you)</span>}
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">{u.name}</p>
+                    {isSelf && <span className="text-xs text-slate-400 dark:text-slate-500">(you)</span>}
                   </div>
-                  <p className="text-xs text-slate-500">{u.email}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{u.email}</p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-xs text-slate-400">{u.job_count} app{u.job_count !== 1 ? 's' : ''}</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{u.job_count} app{u.job_count !== 1 ? 's' : ''}</span>
                   <button
                     disabled={isSelf || roleMut.isPending}
                     onClick={() => handleRoleToggle(u.id, u.role)}
                     title={isSelf ? 'Cannot change your own role' : `Make ${u.role === 'admin' ? 'user' : 'admin'}`}
                     className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
                       u.role === 'admin'
-                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
-                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-700 dark:hover:bg-indigo-900/50'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-600'
                     } disabled:opacity-40 disabled:cursor-not-allowed`}
                   >
                     {u.role === 'admin' && <Crown className="w-3 h-3" />}
@@ -115,7 +115,7 @@ export default function Admin() {
                     disabled={isSelf || deleteMut.isPending}
                     onClick={() => handleDelete(u.id, u.name)}
                     title={isSelf ? 'Cannot delete yourself' : 'Delete user'}
-                    className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

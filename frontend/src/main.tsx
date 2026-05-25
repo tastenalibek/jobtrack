@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
 import { ToastProvider } from './context/toast'
+import { ThemeProvider } from './context/theme'
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state = { error: null }
@@ -11,10 +12,10 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   render() {
     if (this.state.error) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
-          <div className="bg-white rounded-2xl border border-red-200 p-8 max-w-lg w-full">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 p-8">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-red-200 dark:border-red-800 p-8 max-w-lg w-full">
             <h1 className="text-lg font-bold text-red-600 mb-2">Something went wrong</h1>
-            <pre className="text-xs text-gray-600 whitespace-pre-wrap bg-gray-50 rounded-lg p-4 overflow-auto">
+            <pre className="text-xs text-gray-600 dark:text-slate-400 whitespace-pre-wrap bg-gray-50 dark:bg-slate-900 rounded-lg p-4 overflow-auto">
               {(this.state.error as Error).message}
             </pre>
             <button onClick={() => window.location.href = '/'}
@@ -31,10 +32,12 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary>
-      <ToastProvider>
-        <App />
-      </ToastProvider>
-    </ErrorBoundary>
+    <ThemeProvider>
+      <ErrorBoundary>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </ErrorBoundary>
+    </ThemeProvider>
   </StrictMode>
 )
